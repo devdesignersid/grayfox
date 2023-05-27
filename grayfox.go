@@ -3,17 +3,15 @@ package grayfox
 import ("net/http")
 
 // App represents the application instance.
-type App struct {}
-
-// New creates a new instance of the App.
-func New() *App {
-  app := &App{}
-  return app
+type App struct {
+  Router
 }
 
-func (app *App) ServeHTTP(w http.ResponseWriter, req *http.Request){}
-
-func (app *App) Handler() http.Handler {
+// New creates a new instance of the App.
+func New(router Router) *App {
+  app := &App{
+    Router: router,
+  }
   return app
 }
   
@@ -23,7 +21,7 @@ func (app *App) Handler() http.Handler {
 func (app *App) Run(addr ...string) (err error) {
   address := resolveAddress(addr)
   debugLog("Listening and serving HTTP on %s", address)
-  err = http.ListenAndServe(address, app.Handler())
+  err = http.ListenAndServe(address, &app.Router)
   return 
 }
 
