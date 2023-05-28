@@ -2,6 +2,8 @@ package grayfox
 
 import (
 	"net/http"
+	"path"
+	"strings"
 )
 
 type Router struct {
@@ -18,16 +20,20 @@ func NewRouter() *Router {
 }
 
 func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
-  path := req.URL.Path
-  method := req.Method
-  debugLog("Request path: %s:%s", path, method)
-  controller := r.routes[path];
-  handler := controller.getHandler(path, method)
+  requestPaths := strings.Split(req.URL.Path, "/")
+  controllerPath := preparePath(requestPaths[1])
+  httpMethod := req.Method
+  controller := r.routes[controllerPath];
+  handlerPath := path.Join(requestPaths[2:]...)
+  handler := controller.getHandler(handlerPath, httpMethod)
   handler(w, req)
 }
+
+func (r *Router) Route(path string, controller Controller){
+  routePath := preparePath(path)
+  r.routes[routePath] = controller
+}
   
-
-
 
 type Controller struct {
   router Router
@@ -42,10 +48,11 @@ func NewController(router Router) *Controller {
 }
 
 func (c *Controller) Route(path string, method string, handlerFunc func(http.ResponseWriter, *http.Request)){
-         if c.routeHandlerMap[path] == nil {
-           c.routeHandlerMap[path] = make(map[string]func(http.ResponseWriter, *http.Request))
+         routePath := preparePath(path)
+         if c.routeHandlerMap[routePath] == nil {
+           c.routeHandlerMap[routePath] = make(map[string]func(http.ResponseWriter, *http.Request))
          }
-         c.routeHandlerMap[path][method] = handlerFunc
+         c.routeHandlerMap[routePath][method] = handlerFunc
 }
 
 func (c *Controller) getHandler(path string, method string) func(http.ResponseWriter, *http.Request) {
@@ -53,9 +60,7 @@ func (c *Controller) getHandler(path string, method string) func(http.ResponseWr
   return handlerFunc
 }
 
-func (r *Router) Route(path string, controller Controller){
-  r.routes[path] = controller
-}
+
 
 
 

@@ -1,8 +1,11 @@
 package grayfox
 
-import "os"
+import (
+	"os"
+	"strings"
+)
 
-// requries single or no argument  
+// requries single or no argument
 // if no argument is provided set's host to localhost and port to 8080
 func resolveAddress (addr []string) string {
   switch len(addr) {
@@ -16,4 +19,10 @@ func resolveAddress (addr []string) string {
   default:
     panic("too many arguments")
   }
+}
+
+func preparePath (path string) string {
+  newPath := strings.TrimLeft(path, "/")
+  newPath = strings.ToLower(newPath)
+  return newPath
 }
